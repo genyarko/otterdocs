@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect, useRef } from 'react';
 import { PitchDeck, PitchDeckSlide } from '@/types/pitchDeck';
 
 interface PitchDeckViewerProps {
@@ -14,6 +15,8 @@ interface PitchDeckViewerProps {
   progressPercentage: number;
   onGenerateImageForSlide?: (slideIndex: number) => void;
   onUploadImageForSlide?: (slideIndex: number, file: File) => void;
+  onExportSpeakerPDF?: () => void;
+  onExportInvestorPDF?: () => void;
 }
 
 export default function PitchDeckViewer({
@@ -27,8 +30,27 @@ export default function PitchDeckViewer({
   onPrevious,
   progressPercentage,
   onGenerateImageForSlide,
-  onUploadImageForSlide
+  onUploadImageForSlide,
+  onExportSpeakerPDF,
+  onExportInvestorPDF
 }: PitchDeckViewerProps) {
+  const [showPDFDropdown, setShowPDFDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowPDFDropdown(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+  
   console.log('PitchDeckViewer rendering:', {
     title: pitchDeck.title,
     currentSlide,
@@ -91,6 +113,62 @@ export default function PitchDeckViewer({
             </div>
             
             <div className="flex items-center space-x-4">
+              {/* PDF Export Dropdown */}
+              {(onExportSpeakerPDF || onExportInvestorPDF) && (
+                <div className="relative" ref={dropdownRef}>
+                  <button
+                    onClick={() => setShowPDFDropdown(!showPDFDropdown)}
+                    className="flex items-center px-3 py-2 text-sm bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors"
+                    title="Download as PDF"
+                  >
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Export PDF
+                    <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  
+                  {showPDFDropdown && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-50">
+                      <div className="py-1">
+                        {onExportSpeakerPDF && (
+                          <button
+                            onClick={() => {
+                              onExportSpeakerPDF();
+                              setShowPDFDropdown(false);
+                            }}
+                            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                          >
+                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4V2a1 1 0 011-1h4a1 1 0 011 1v2h4a1 1 0 110 2h-1v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6H3a1 1 0 010-2h4zM6 6v12h8V6H6zM8 8h4v2H8V8zm0 4h4v2H8v-2z" />
+                            </svg>
+                            Speaker PDF
+                            <span className="ml-auto text-xs text-gray-500">with notes</span>
+                          </button>
+                        )}
+                        {onExportInvestorPDF && (
+                          <button
+                            onClick={() => {
+                              onExportInvestorPDF();
+                              setShowPDFDropdown(false);
+                            }}
+                            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                          >
+                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2h8z" />
+                            </svg>
+                            Investor PDF
+                            <span className="ml-auto text-xs text-gray-500">clean version</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+              
               <span className="text-sm text-gray-500">
                 Slide {currentSlide + 1} of {pitchDeck.totalSlides}
               </span>

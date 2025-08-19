@@ -10,6 +10,7 @@ import {
 } from '@/types/pitchDeck';
 import { OnlinePitchDeckGenerator } from '@/services/pitchDeckGenerator';
 import { LocalPitchDeckRepository } from '@/services/pitchDeckRepository';
+import { PDFExportService } from '@/services/pdfExportService';
 
 // Custom hook that mimics the Android ViewModel pattern
 export function usePitchDeck() {
@@ -382,6 +383,72 @@ export function usePitchDeck() {
     }
   }, [state.currentPitchDeck, repository]);
 
+  const exportSpeakerPDF = useCallback(async () => {
+    const { currentPitchDeck } = state;
+    if (!currentPitchDeck) {
+      setState(prev => ({
+        ...prev,
+        error: 'No pitch deck selected for export'
+      }));
+      return;
+    }
+
+    try {
+      console.log('Starting speaker PDF export for:', currentPitchDeck.title);
+      setState(prev => ({ ...prev, error: null }));
+      
+      // Create progress callback
+      const progressCallback = PDFExportService.createProgressCallback(
+        (message: string, percentage: number) => {
+          console.log(message, `${percentage}%`);
+        }
+      );
+
+      await PDFExportService.exportSpeakerPDF(currentPitchDeck, progressCallback);
+      
+      console.log('Speaker PDF export completed successfully');
+    } catch (error) {
+      console.error('Speaker PDF export failed:', error);
+      setState(prev => ({
+        ...prev,
+        error: error instanceof Error ? error.message : 'Failed to export speaker PDF'
+      }));
+    }
+  }, [state.currentPitchDeck]);
+
+  const exportInvestorPDF = useCallback(async () => {
+    const { currentPitchDeck } = state;
+    if (!currentPitchDeck) {
+      setState(prev => ({
+        ...prev,
+        error: 'No pitch deck selected for export'
+      }));
+      return;
+    }
+
+    try {
+      console.log('Starting investor PDF export for:', currentPitchDeck.title);
+      setState(prev => ({ ...prev, error: null }));
+      
+      // Create progress callback
+      const progressCallback = PDFExportService.createProgressCallback(
+        (message: string, percentage: number) => {
+          console.log(message, `${percentage}%`);
+        }
+      );
+
+      await PDFExportService.exportInvestorPDF(currentPitchDeck, progressCallback);
+      
+      console.log('Investor PDF export completed successfully');
+    } catch (error) {
+      console.error('Investor PDF export failed:', error);
+      setState(prev => ({
+        ...prev,
+        error: error instanceof Error ? error.message : 'Failed to export investor PDF'
+      }));
+    }
+  }, [state.currentPitchDeck]);
+
   // Navigate between slides
   const nextSlide = useCallback(() => {
     const { currentPitchDeck, currentSlide } = state;
@@ -428,6 +495,8 @@ export function usePitchDeck() {
     retryGeneration,
     generateImageForSlide,
     uploadImageForSlide,
+    exportSpeakerPDF,
+    exportInvestorPDF,
     
     // Navigation
     nextSlide,

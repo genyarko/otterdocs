@@ -26,6 +26,8 @@ export default function Home() {
     clearError,
     generateImageForSlide,
     uploadImageForSlide,
+    exportSpeakerPDF,
+    exportInvestorPDF,
     
     // Navigation
     nextSlide,
@@ -114,6 +116,8 @@ export default function Home() {
         progressPercentage={progressPercentage}
         onGenerateImageForSlide={generateImageForSlide}
         onUploadImageForSlide={uploadImageForSlide}
+        onExportSpeakerPDF={exportSpeakerPDF}
+        onExportInvestorPDF={exportInvestorPDF}
       />
     );
   }
@@ -146,6 +150,8 @@ export default function Home() {
           progressPercentage={progressPercentage}
           onGenerateImageForSlide={generateImageForSlide}
           onUploadImageForSlide={uploadImageForSlide}
+          onExportSpeakerPDF={exportSpeakerPDF}
+          onExportInvestorPDF={exportInvestorPDF}
         />
       </div>
     );
