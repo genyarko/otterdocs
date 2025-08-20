@@ -17,6 +17,17 @@ export default function PitchDeckList({
   onCreateNew,
   isLoading
 }: PitchDeckListProps) {
+  console.log('📋 PitchDeckList render:', {
+    pitchDecksCount: pitchDecks.length,
+    isLoading,
+    pitchDecks: pitchDecks.map(p => ({
+      id: p.id,
+      title: p.title,
+      companyName: p.companyName,
+      isCompleted: p.isCompleted,
+      slidesCount: p.slides.length
+    }))
+  });
   const formatDate = (timestamp: number) => {
     return new Date(timestamp).toLocaleDateString('en-US', {
       year: 'numeric',

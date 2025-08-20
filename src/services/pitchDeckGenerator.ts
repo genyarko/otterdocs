@@ -121,6 +121,13 @@ export class OnlinePitchDeckGenerator implements PitchDeckGenerator {
             
             // Small delay to show progress
             await new Promise(resolve => setTimeout(resolve, 300));
+          } else {
+            // If generateSlide returns null (failed but no exception), create fallback
+            console.warn(`generateSlide returned null for slide ${i + 1}, creating fallback`);
+            const fallbackSlide = this.createFallbackSlide(template, i + 1);
+            slides.push(fallbackSlide);
+            onSlideGenerated(i + 1, totalSlides);
+            console.log(`Created fallback slide ${i + 1}/${totalSlides}: ${fallbackSlide.title}`);
           }
         } catch (error) {
           console.error(`Failed to generate slide ${i + 1}:`, error);
@@ -139,7 +146,7 @@ export class OnlinePitchDeckGenerator implements PitchDeckGenerator {
         industry: request.industry,
         fundingStage: request.fundingStage,
         slides,
-        totalSlides: slides.length,
+        totalSlides: 10, // Always 10 slides for standard pitch deck
         createdAt: Date.now(),
         currentSlide: 0,
         isCompleted: true, // Mark as completed since all text is generated
@@ -190,13 +197,21 @@ export class OnlinePitchDeckGenerator implements PitchDeckGenerator {
       console.log('API Response status:', response.status);
       
       if (!response.ok) {
-        const errorData = await response.json();
-        console.log('API Error response:', errorData);
-        throw new Error(`Server API error: ${response.status} - ${errorData.error}`);
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('API Error response:', errorData);
+        throw new Error(`Server API error: ${response.status} - ${errorData.error || 'Unknown error'}`);
       }
 
       const data = await response.json();
+      console.log('API Response data:', data);
+      
+      if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+        console.error('Invalid API response structure:', data);
+        throw new Error('Invalid API response structure');
+      }
+      
       const content = data.choices[0].message.content;
+      console.log('Extracted content:', content);
 
       return this.parseSlideResponse(content, template);
     } catch (error) {
@@ -435,13 +450,31 @@ Generate the ${template.slideType} slide now:
 
   private parseSlideResponse(response: string, template: SlideTemplate): PitchDeckSlide | null {
     try {
-      // Extract JSON from response
-      const jsonMatch = response.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) {
+      console.log('Raw AI response:', response);
+      
+      // Extract JSON from response - try to find the last complete JSON object
+      const jsonMatches = response.match(/\{[\s\S]*?\}/g);
+      if (!jsonMatches || jsonMatches.length === 0) {
+        console.error('No JSON found in response');
         throw new Error('No JSON found in response');
       }
 
-      const slideData = JSON.parse(jsonMatch[0]);
+      // Try parsing each JSON match, starting from the last one
+      let slideData = null;
+      for (let i = jsonMatches.length - 1; i >= 0; i--) {
+        try {
+          slideData = JSON.parse(jsonMatches[i]);
+          console.log('Successfully parsed JSON:', slideData);
+          break;
+        } catch (parseError) {
+          console.warn(`Failed to parse JSON attempt ${i + 1}:`, jsonMatches[i]);
+          continue;
+        }
+      }
+
+      if (!slideData) {
+        throw new Error('No valid JSON could be parsed from response');
+      }
 
       return {
         slideNumber: template.order,
@@ -455,6 +488,7 @@ Generate the ${template.slideType} slide now:
       };
     } catch (error) {
       console.error('Failed to parse slide response:', error);
+      console.error('Response was:', response);
       return this.createFallbackSlide(template, template.order);
     }
   }

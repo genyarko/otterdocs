@@ -26,14 +26,13 @@ export default function Home() {
     isLoading,
     currentSlide,
     showPitchDeckList,
-    showCreator: showPitchDeckCreatorBool,
     
     // Actions
     generatePitchDeck,
     loadPitchDeck,
     deletePitchDeck,
     goToPitchDeckList: returnToList,
-    showCreator: showCreatorForm,
+    showCreatorForm,
     clearError,
     generateImageForSlide,
     uploadImageForSlide,
@@ -47,7 +46,8 @@ export default function Home() {
     goToSlide,
     canGoNext,
     canGoPrevious,
-    progressPercentage
+    progressPercentage,
+    showCreator: showPitchDeckCreatorBool
   } = usePitchDeck();
 
   // Business Plan hook
@@ -87,6 +87,7 @@ export default function Home() {
     return (
       <GenerationProgress 
         progress={isGenerating ? generationProgress : businessPlanProgress}
+        contentType={isGenerating ? 'pitch-deck' : 'business-plan'}
         onCancel={() => {
           // Add cancel logic here if needed
           if (isGenerating) {
@@ -133,9 +134,18 @@ export default function Home() {
     );
   }
 
+  // Debug logging for navigation
+  console.log('🎯 Main page render - Navigation state:', {
+    currentPitchDeck: currentPitchDeck?.title || 'none',
+    showPitchDeckList,
+    allPitchDecksCount: allPitchDecks.length,
+    shouldShowViewer: !!(currentPitchDeck && !showPitchDeckList),
+    shouldShowList: !currentPitchDeck || showPitchDeckList
+  });
+
   // Show pitch deck viewer if a deck is selected
   if (currentPitchDeck && !showPitchDeckList) {
-    console.log('Rendering PitchDeckViewer with:', {
+    console.log('✅ Rendering PitchDeckViewer with:', {
       deckTitle: currentPitchDeck.title,
       currentSlide,
       showPitchDeckList,
@@ -196,6 +206,15 @@ export default function Home() {
   const shouldShowPitchDeckCreator = showPitchDeckCreatorBool || (showPitchDeckList && allPitchDecks.length === 0);
   const shouldShowBusinessPlanCreator = showBusinessPlanCreator || (showBusinessPlanList && allBusinessPlans.length === 0);
   
+  console.log('🔍 Rendering decision:', {
+    activeTab,
+    shouldShowPitchDeckCreator,
+    showPitchDeckCreatorBool,
+    showPitchDeckList,
+    allPitchDecksLength: allPitchDecks.length,
+    willRenderPitchDeckList: activeTab === 'pitch-decks' && !shouldShowPitchDeckCreator
+  });
+  
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -204,7 +223,9 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex space-x-8">
             <button
-              onClick={() => {
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 setActiveTab('pitch-decks');
                 if (currentBusinessPlan) returnToBusinessPlanList();
               }}
@@ -217,7 +238,9 @@ export default function Home() {
               Pitch Decks ({allPitchDecks.length})
             </button>
             <button
-              onClick={() => {
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 setActiveTab('business-plans');
                 if (currentPitchDeck) returnToList();
               }}
@@ -230,7 +253,9 @@ export default function Home() {
               Business Plans ({allBusinessPlans.length})
             </button>
             <button
-              onClick={() => {
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 setActiveTab('investor-tracker');
                 if (currentPitchDeck) returnToList();
                 if (currentBusinessPlan) returnToBusinessPlanList();

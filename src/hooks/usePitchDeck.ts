@@ -266,12 +266,29 @@ export function usePitchDeck() {
   }, [state.currentPitchDeck, repository, loadAllPitchDecks]);
 
   const showPitchDeckListFunc = useCallback(() => {
-    setState(prev => ({
-      ...prev,
-      showPitchDeckList: true,
-      showCreator: false,
-      currentPitchDeck: null
-    }));
+    console.log('🔄 showPitchDeckListFunc called - returning to pitch deck list');
+    setState(prev => {
+      console.log('🔄 Previous state:', {
+        showPitchDeckList: prev.showPitchDeckList,
+        currentPitchDeck: prev.currentPitchDeck?.title || 'none',
+        showCreator: prev.showCreator
+      });
+      
+      const newState = {
+        ...prev,
+        showPitchDeckList: true,
+        showCreator: false,
+        currentPitchDeck: null
+      };
+      
+      console.log('🔄 New state:', {
+        showPitchDeckList: newState.showPitchDeckList,
+        currentPitchDeck: newState.currentPitchDeck?.title || 'none',
+        showCreator: newState.showCreator
+      });
+      
+      return newState;
+    });
     // Reload the list when returning to it
     loadAllPitchDecks().catch(console.error);
   }, [loadAllPitchDecks]);
@@ -542,7 +559,7 @@ export function usePitchDeck() {
     markPitchDeckCompleted,
     updateCurrentSlide,
     goToPitchDeckList: showPitchDeckListFunc,
-    showCreator: showCreatorFunc,
+    showCreatorForm: showCreatorFunc,
     clearError,
     retryGeneration,
     generateImageForSlide,

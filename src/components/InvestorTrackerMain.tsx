@@ -15,38 +15,102 @@ export default function InvestorTrackerMain({ allPitchDecks }: InvestorTrackerMa
   const [selectedInvestor, setSelectedInvestor] = useState<Investor | undefined>();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedPitchDeck, setSelectedPitchDeck] = useState<string>('all');
+  const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    const fetchAllInvestors = async () => {
-      const response = await fetch('/api/investors');
-      const data = await response.json();
-      setInvestors(data);
+    // Load investors from localStorage after component mounts
+    const loadInvestors = () => {
+      try {
+        const stored = localStorage.getItem('investors');
+        if (stored) {
+          const parsedInvestors = JSON.parse(stored) as Investor[];
+          setInvestors(parsedInvestors.sort((a, b) => parseInt(b.id) - parseInt(a.id)));
+        }
+      } catch (error) {
+        console.error('Failed to load investors from localStorage:', error);
+      } finally {
+        setIsLoaded(true);
+      }
     };
-    fetchAllInvestors();
+    
+    // Use a small delay to ensure hydration is complete
+    const timer = setTimeout(() => {
+      loadInvestors();
+    }, 100);
+    
+    return () => clearTimeout(timer);
   }, []);
 
-  const handleFormSubmit = async (investorData: Omit<Investor, 'id'>) => {
-    if (selectedInvestor) {
-      // Update existing investor
-      const response = await fetch(`/api/investors/${selectedInvestor.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(investorData),
-      });
-      const updatedInvestor = await response.json();
-      setInvestors(investors.map(inv => inv.id === selectedInvestor.id ? updatedInvestor : inv));
-    } else {
-      // Create new investor
-      const response = await fetch('/api/investors', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(investorData),
-      });
-      const newInvestor = await response.json();
-      setInvestors([...investors, newInvestor]);
+  const saveInvestorsToStorage = (investorList: Investor[]) => {
+    try {
+      localStorage.setItem('investors', JSON.stringify(investorList));
+    } catch (error) {
+      console.error('Failed to save investors to localStorage:', error);
     }
-    setIsFormOpen(false);
-    setSelectedInvestor(undefined);
+  };
+
+  const handleFormSubmit = async (investorData: Omit<Investor, 'id'>) => {
+    setIsSubmitting(true);
+    setNotification(null);
+    
+    try {
+      if (selectedInvestor) {
+        // Update existing investor
+        console.log('Updating investor:', selectedInvestor.id, investorData);
+        
+        const updatedInvestor: Investor = {
+          ...selectedInvestor,
+          ...investorData,
+          id: selectedInvestor.id,
+          updatedAt: Date.now()
+        };
+        
+        const updatedInvestors = investors.map(inv => 
+          inv.id === selectedInvestor.id ? updatedInvestor : inv
+        );
+        
+        setInvestors(updatedInvestors);
+        saveInvestorsToStorage(updatedInvestors);
+        
+        console.log('Update successful:', updatedInvestor);
+        setNotification({ message: 'Investor updated successfully!', type: 'success' });
+      } else {
+        // Create new investor
+        console.log('Creating new investor:', investorData);
+        
+        const newInvestor: Investor = {
+          ...investorData,
+          id: Date.now().toString(),
+          createdAt: Date.now(),
+          updatedAt: Date.now()
+        };
+        
+        const updatedInvestors = [newInvestor, ...investors];
+        
+        setInvestors(updatedInvestors);
+        saveInvestorsToStorage(updatedInvestors);
+        
+        console.log('Creation successful:', newInvestor);
+        setNotification({ message: 'Investor added successfully!', type: 'success' });
+      }
+      
+      // Close form after successful operation
+      setTimeout(() => {
+        setIsFormOpen(false);
+        setSelectedInvestor(undefined);
+      }, 1500); // Give user time to see success message
+      
+    } catch (error) {
+      console.error('Form submission error:', error);
+      setNotification({ 
+        message: error instanceof Error ? error.message : 'Something went wrong. Please try again.', 
+        type: 'error' 
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleEdit = (investor: Investor) => {
@@ -55,8 +119,14 @@ export default function InvestorTrackerMain({ allPitchDecks }: InvestorTrackerMa
   };
 
   const handleDelete = async (investorId: string) => {
-    await fetch(`/api/investors/${investorId}`, { method: 'DELETE' });
-    setInvestors(investors.filter(investor => investor.id !== investorId));
+    try {
+      const updatedInvestors = investors.filter(investor => investor.id !== investorId);
+      setInvestors(updatedInvestors);
+      saveInvestorsToStorage(updatedInvestors);
+      console.log('Investor deleted successfully:', investorId);
+    } catch (error) {
+      console.error('Failed to delete investor:', error);
+    }
   };
 
   const filteredInvestors = selectedPitchDeck === 'all' 
@@ -76,15 +146,60 @@ export default function InvestorTrackerMain({ allPitchDecks }: InvestorTrackerMa
             <h2 className="text-2xl font-bold text-gray-900 mb-6">
               {selectedInvestor ? 'Edit Investor' : 'Add New Investor'}
             </h2>
+            
+            {/* Notification */}
+            {notification && (
+              <div className={`mb-6 p-4 rounded-md ${
+                notification.type === 'success' 
+                  ? 'bg-green-50 border border-green-200 text-green-800' 
+                  : 'bg-red-50 border border-red-200 text-red-800'
+              }`}>
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    {notification.type === 'success' ? (
+                      <svg className="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                    ) : (
+                      <svg className="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                      </svg>
+                    )}
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm font-medium">{notification.message}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             <InvestorForm
               investor={selectedInvestor}
               onSubmit={handleFormSubmit}
               onCancel={() => {
                 setIsFormOpen(false);
                 setSelectedInvestor(undefined);
+                setNotification(null);
               }}
               allPitchDecks={allPitchDecks}
+              isSubmitting={isSubmitting}
             />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show loading state while data is being loaded to prevent hydration issues
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+              <span className="ml-3 text-gray-600">Loading investors...</span>
+            </div>
           </div>
         </div>
       </div>

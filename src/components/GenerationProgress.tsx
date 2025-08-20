@@ -5,19 +5,21 @@ import { GenerationProgress as ProgressType, GenerationPhase } from '@/types/pit
 interface GenerationProgressProps {
   progress: ProgressType;
   onCancel?: () => void;
+  contentType?: 'pitch-deck' | 'business-plan';
 }
 
-export default function GenerationProgress({ progress, onCancel }: GenerationProgressProps) {
+export default function GenerationProgress({ progress, onCancel, contentType = 'pitch-deck' }: GenerationProgressProps) {
   const getPhaseText = (phase: GenerationPhase) => {
+    const contentName = contentType === 'business-plan' ? 'business plan' : 'pitch deck';
     switch (phase) {
       case GenerationPhase.PREPARING:
-        return 'Preparing your pitch deck...';
+        return `Preparing your ${contentName}...`;
       case GenerationPhase.GENERATING_SLIDES:
-        return 'Generating slides...';
+        return contentType === 'business-plan' ? 'Generating sections...' : 'Generating slides...';
       case GenerationPhase.FINALIZING:
-        return 'Finalizing your pitch deck...';
+        return `Finalizing your ${contentName}...`;
       case GenerationPhase.COMPLETED:
-        return 'Pitch deck completed!';
+        return `${contentName.charAt(0).toUpperCase() + contentName.slice(1)} completed!`;
       case GenerationPhase.ERROR:
         return 'An error occurred';
       default:
@@ -60,7 +62,10 @@ export default function GenerationProgress({ progress, onCancel }: GenerationPro
           </div>
           
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            {progress.phase === GenerationPhase.ERROR ? 'Generation Failed' : 'Creating Your Pitch Deck'}
+            {progress.phase === GenerationPhase.ERROR 
+              ? 'Generation Failed' 
+              : `Creating Your ${contentType === 'business-plan' ? 'Business Plan' : 'Pitch Deck'}`
+            }
           </h3>
           
           <p className="text-gray-600">
@@ -89,7 +94,10 @@ export default function GenerationProgress({ progress, onCancel }: GenerationPro
           <div className="mb-6 p-4 bg-blue-50 rounded-lg">
             <div className="flex items-center justify-between text-sm">
               <span className="text-blue-800 font-medium">
-                Generating Slide {progress.currentSlide} of {progress.totalSlides}
+                {contentType === 'business-plan' 
+                  ? `Generating Section ${progress.currentSlide} of ${progress.totalSlides}`
+                  : `Generating Slide ${progress.currentSlide} of ${progress.totalSlides}`
+                }
               </span>
               <span className="text-blue-600">
                 {Math.round((progress.currentSlide / progress.totalSlides) * 100)}%

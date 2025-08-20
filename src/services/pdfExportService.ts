@@ -611,10 +611,16 @@ export class PDFExportService {
    * Clean text content to remove problematic characters and formatting
    * Uses aggressive ASCII conversion to ensure PDF compatibility
    */
-  private static cleanTextForPDF(text: string): string {
+  private static cleanTextForPDF(text: string | any): string {
     if (!text) return '';
-
-    let cleanedText = text;
+    
+    // Convert to string if not already
+    let cleanedText: string;
+    if (typeof text === 'string') {
+      cleanedText = text;
+    } else {
+      cleanedText = String(text);
+    }
 
     try {
       // First pass: Handle common encoding issues
@@ -721,14 +727,26 @@ export class PDFExportService {
    */
   private static safeAddText(
     pdf: jsPDF, 
-    text: string, 
+    text: string | string[] | any, 
     x: number, 
     y: number, 
     options?: any
   ): void {
     try {
+      // Convert to string if not already
+      let textToAdd: string;
+      if (Array.isArray(text)) {
+        textToAdd = text.join(' ');
+      } else if (typeof text === 'string') {
+        textToAdd = text;
+      } else if (text != null) {
+        textToAdd = String(text);
+      } else {
+        textToAdd = '';
+      }
+
       // Clean text before adding
-      const cleanText = this.cleanTextForPDF(text);
+      const cleanText = this.cleanTextForPDF(textToAdd);
       if (cleanText && cleanText.trim().length > 0) {
         pdf.text(cleanText, x, y, options);
       }
@@ -736,7 +754,16 @@ export class PDFExportService {
       console.warn('Failed to add text to PDF:', error);
       // Try to add a simplified version
       try {
-        const simpleText = text.replace(/[^\x20-\x7E]/g, '').trim();
+        let fallbackText: string;
+        if (Array.isArray(text)) {
+          fallbackText = text.join(' ');
+        } else if (typeof text === 'string') {
+          fallbackText = text;
+        } else {
+          fallbackText = String(text || '');
+        }
+        
+        const simpleText = fallbackText.replace(/[^\x20-\x7E]/g, '').trim();
         if (simpleText) {
           pdf.text(simpleText, x, y, options);
         }
