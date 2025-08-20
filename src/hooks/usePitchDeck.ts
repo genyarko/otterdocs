@@ -28,6 +28,7 @@ export function usePitchDeck() {
     isLoading: false,
     currentSlide: 0,
     showPitchDeckList: true,
+    showCreator: false,
     lastPitchDeckRequest: null
   });
 
@@ -39,9 +40,11 @@ export function usePitchDeck() {
 
   const [repository] = useState(() => new LocalPitchDeckRepository());
 
-  // Load all pitch decks on initialization
+  // Load all pitch decks on initialization (client-side only to avoid hydration issues)
   useEffect(() => {
-    loadAllPitchDecks();
+    if (typeof window !== 'undefined') {
+      loadAllPitchDecks();
+    }
   }, []);
 
   const loadAllPitchDecks = useCallback(async (preserveCurrentState = false) => {
@@ -80,6 +83,7 @@ export function usePitchDeck() {
         error: null,
         currentPitchDeck: null, // Clear any existing deck
         showPitchDeckList: false, // Ensure we're not showing list during generation
+        showCreator: false, // Hide creator during generation
         lastPitchDeckRequest: request
       }));
 
@@ -160,10 +164,12 @@ export function usePitchDeck() {
 
   const loadPitchDeck = useCallback(async (id: string) => {
     try {
+      console.log('🔍 Loading pitch deck with ID:', id);
       setState(prev => ({ ...prev, isLoading: true }));
       const pitchDeck = await repository.getPitchDeckById(id);
       
       if (pitchDeck) {
+        console.log('✅ Successfully loaded pitch deck:', pitchDeck.title, 'with', pitchDeck.slides.length, 'slides');
         setState(prev => ({
           ...prev,
           currentPitchDeck: pitchDeck,
@@ -171,7 +177,9 @@ export function usePitchDeck() {
           showPitchDeckList: false,
           isLoading: false
         }));
+        console.log('📊 State updated - showPitchDeckList:', false, 'currentSlide:', pitchDeck.currentSlide);
       } else {
+        console.error('❌ Pitch deck not found for ID:', id);
         setState(prev => ({
           ...prev,
           error: 'Pitch deck not found',
@@ -179,7 +187,7 @@ export function usePitchDeck() {
         }));
       }
     } catch (error) {
-      console.error('Failed to load pitch deck:', error);
+      console.error('💥 Failed to load pitch deck:', error);
       setState(prev => ({
         ...prev,
         error: 'Failed to load pitch deck',
@@ -261,11 +269,21 @@ export function usePitchDeck() {
     setState(prev => ({
       ...prev,
       showPitchDeckList: true,
+      showCreator: false,
       currentPitchDeck: null
     }));
     // Reload the list when returning to it
     loadAllPitchDecks().catch(console.error);
   }, [loadAllPitchDecks]);
+
+  const showCreatorFunc = useCallback(() => {
+    setState(prev => ({
+      ...prev,
+      showPitchDeckList: false,
+      showCreator: true,
+      currentPitchDeck: null
+    }));
+  }, []);
 
   const clearError = useCallback(() => {
     setState(prev => ({ ...prev, error: null }));
@@ -449,6 +467,39 @@ export function usePitchDeck() {
     }
   }, [state.currentPitchDeck]);
 
+  const exportOnePagerPDF = useCallback(async () => {
+    const { currentPitchDeck } = state;
+    if (!currentPitchDeck) {
+      setState(prev => ({
+        ...prev,
+        error: 'No pitch deck selected for export'
+      }));
+      return;
+    }
+
+    try {
+      console.log('Starting One-Pager PDF export for:', currentPitchDeck.title);
+      setState(prev => ({ ...prev, error: null }));
+      
+      // Create progress callback
+      const progressCallback = PDFExportService.createProgressCallback(
+        (message: string, percentage: number) => {
+          console.log(message, `${percentage}%`);
+        }
+      );
+
+      await PDFExportService.exportOnePagerPDF(currentPitchDeck, progressCallback);
+      
+      console.log('One-Pager PDF export completed successfully');
+    } catch (error) {
+      console.error('One-Pager PDF export failed:', error);
+      setState(prev => ({
+        ...prev,
+        error: error instanceof Error ? error.message : 'Failed to export One-Pager PDF'
+      }));
+    }
+  }, [state.currentPitchDeck]);
+
   // Navigate between slides
   const nextSlide = useCallback(() => {
     const { currentPitchDeck, currentSlide } = state;
@@ -490,13 +541,15 @@ export function usePitchDeck() {
     deletePitchDeck,
     markPitchDeckCompleted,
     updateCurrentSlide,
-    showPitchDeckList: showPitchDeckListFunc,
+    goToPitchDeckList: showPitchDeckListFunc,
+    showCreator: showCreatorFunc,
     clearError,
     retryGeneration,
     generateImageForSlide,
     uploadImageForSlide,
     exportSpeakerPDF,
     exportInvestorPDF,
+    exportOnePagerPDF,
     
     // Navigation
     nextSlide,

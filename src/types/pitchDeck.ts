@@ -138,5 +138,74 @@ export interface PitchDeckState {
   isLoading: boolean;
   currentSlide: number;
   showPitchDeckList: boolean;
+  showCreator: boolean;
   lastPitchDeckRequest: PitchDeckRequest | null;
+}
+
+// Business Plan Types
+export interface BusinessPlanSection {
+  sectionNumber: number;
+  title: string;
+  content: string;
+  sectionType: BusinessPlanSectionType;
+  keyPoints: string[];
+  isGenerated: boolean;
+  generatedAt?: number;
+}
+
+export enum BusinessPlanSectionType {
+  EXECUTIVE_SUMMARY = 'executive_summary',
+  COMPANY_DESCRIPTION = 'company_description',
+  MARKET_ANALYSIS = 'market_analysis',
+  ORGANIZATION_MANAGEMENT = 'organization_management',
+  PRODUCTS_SERVICES = 'products_services',
+  MARKETING_SALES = 'marketing_sales',
+  FUNDING_REQUEST = 'funding_request',
+  FINANCIAL_PROJECTIONS = 'financial_projections',
+  APPENDIX = 'appendix'
+}
+
+export interface BusinessPlan {
+  id: string;
+  title: string;
+  industry: IndustryType;
+  fundingStage: FundingStage;
+  sections: BusinessPlanSection[];
+  totalSections: number;
+  createdAt: number;
+  completedAt?: number;
+  currentSection: number;
+  isCompleted: boolean;
+  prompt: string;
+  companyName: string;
+  targetFunding: string;
+  teamSize: number;
+  marketSize: string;
+}
+
+export interface BusinessPlanRequest {
+  prompt: string;
+  industry: IndustryType;
+  fundingStage: FundingStage;
+  companyName: string;
+  targetFunding: string;
+  teamSize: number;
+  marketSize?: string;
+  existingTraction?: string;
+  competitiveAdvantage?: string;
+  businessModel?: string;
+  sectionCount: number; // Fixed at 9 for standard business plan
+}
+
+export interface BusinessPlanState {
+  isGenerating: boolean;
+  generationProgress: GenerationProgress;
+  currentBusinessPlan: BusinessPlan | null;
+  allBusinessPlans: BusinessPlan[];
+  error: string | null;
+  isLoading: boolean;
+  currentSection: number;
+  showBusinessPlanList: boolean;
+  showCreator: boolean;
+  lastBusinessPlanRequest: BusinessPlanRequest | null;
 }

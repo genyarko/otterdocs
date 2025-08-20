@@ -6,9 +6,10 @@ import { IndustryType, FundingStage, PitchDeckRequest } from '@/types/pitchDeck'
 interface PitchDeckCreatorProps {
   onCreatePitchDeck: (request: PitchDeckRequest) => void;
   isGenerating: boolean;
+  onCancel?: () => void;
 }
 
-export default function PitchDeckCreator({ onCreatePitchDeck, isGenerating }: PitchDeckCreatorProps) {
+export default function PitchDeckCreator({ onCreatePitchDeck, isGenerating, onCancel }: PitchDeckCreatorProps) {
   const [formData, setFormData] = useState({
     companyName: '',
     prompt: '',
@@ -40,12 +41,27 @@ export default function PitchDeckCreator({ onCreatePitchDeck, isGenerating }: Pi
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Create Your Pitch Deck
-        </h1>
-        <p className="text-gray-600">
-          Generate a professional 10-slide pitch deck for your startup using AI
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Create Your Pitch Deck
+            </h1>
+            <p className="text-gray-600">
+              Generate a professional 10-slide pitch deck for your startup using AI
+            </p>
+          </div>
+          {onCancel && (
+            <button
+              onClick={onCancel}
+              className="text-gray-600 hover:text-gray-800 flex items-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Back to Pitch Decks
+            </button>
+          )}
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -92,6 +108,7 @@ export default function PitchDeckCreator({ onCreatePitchDeck, isGenerating }: Pi
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Describe your startup idea, the problem you're solving, and your solution in detail..."
             required
+            suppressHydrationWarning={true}
           />
         </div>
 
@@ -105,6 +122,7 @@ export default function PitchDeckCreator({ onCreatePitchDeck, isGenerating }: Pi
               value={formData.industry}
               onChange={(e) => handleChange('industry', e.target.value as IndustryType)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              suppressHydrationWarning={true}
             >
               {Object.values(IndustryType).map((industry) => (
                 <option key={industry} value={industry}>
@@ -122,6 +140,7 @@ export default function PitchDeckCreator({ onCreatePitchDeck, isGenerating }: Pi
               value={formData.fundingStage}
               onChange={(e) => handleChange('fundingStage', e.target.value as FundingStage)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              suppressHydrationWarning={true}
             >
               {Object.values(FundingStage).map((stage) => (
                 <option key={stage} value={stage}>
@@ -145,6 +164,7 @@ export default function PitchDeckCreator({ onCreatePitchDeck, isGenerating }: Pi
               min="1"
               max="50"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              suppressHydrationWarning={true}
             />
           </div>
 
@@ -158,6 +178,7 @@ export default function PitchDeckCreator({ onCreatePitchDeck, isGenerating }: Pi
               onChange={(e) => handleChange('marketSize', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="e.g., $50B TAM, $5B SAM"
+              suppressHydrationWarning={true}
             />
           </div>
         </div>
@@ -176,6 +197,7 @@ export default function PitchDeckCreator({ onCreatePitchDeck, isGenerating }: Pi
               rows={2}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Current customers, revenue, partnerships, etc."
+              suppressHydrationWarning={true}
             />
           </div>
 
@@ -189,6 +211,7 @@ export default function PitchDeckCreator({ onCreatePitchDeck, isGenerating }: Pi
               rows={2}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="What makes you unique? IP, team expertise, first-mover advantage, etc."
+              suppressHydrationWarning={true}
             />
           </div>
 
@@ -202,6 +225,7 @@ export default function PitchDeckCreator({ onCreatePitchDeck, isGenerating }: Pi
               rows={2}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="How do you make money? Subscription, transaction fees, advertising, etc."
+              suppressHydrationWarning={true}
             />
           </div>
         </div>

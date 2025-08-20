@@ -6,7 +6,8 @@
       "Bash(npm run dev:*)",
       "Bash(curl:*)",
       "Bash(start http://localhost:3000)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(npm run lint)"
     ],
     "deny": [],
     "ask": []

@@ -17,6 +17,7 @@ interface PitchDeckViewerProps {
   onUploadImageForSlide?: (slideIndex: number, file: File) => void;
   onExportSpeakerPDF?: () => void;
   onExportInvestorPDF?: () => void;
+  onExportOnePagerPDF?: () => void;
 }
 
 export default function PitchDeckViewer({
@@ -32,7 +33,8 @@ export default function PitchDeckViewer({
   onGenerateImageForSlide,
   onUploadImageForSlide,
   onExportSpeakerPDF,
-  onExportInvestorPDF
+  onExportInvestorPDF,
+  onExportOnePagerPDF
 }: PitchDeckViewerProps) {
   const [showPDFDropdown, setShowPDFDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -114,7 +116,7 @@ export default function PitchDeckViewer({
             
             <div className="flex items-center space-x-4">
               {/* PDF Export Dropdown */}
-              {(onExportSpeakerPDF || onExportInvestorPDF) && (
+              {(onExportSpeakerPDF || onExportInvestorPDF || onExportOnePagerPDF) && (
                 <div className="relative" ref={dropdownRef}>
                   <button
                     onClick={() => setShowPDFDropdown(!showPDFDropdown)}
@@ -161,6 +163,21 @@ export default function PitchDeckViewer({
                             </svg>
                             Investor PDF
                             <span className="ml-auto text-xs text-gray-500">clean version</span>
+                          </button>
+                        )}
+                        {onExportOnePagerPDF && (
+                          <button
+                            onClick={() => {
+                              onExportOnePagerPDF();
+                              setShowPDFDropdown(false);
+                            }}
+                            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                          >
+                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            One-Pager PDF
+                            <span className="ml-auto text-xs text-gray-500">executive summary</span>
                           </button>
                         )}
                       </div>
@@ -211,11 +228,11 @@ export default function PitchDeckViewer({
                       </div>
                       <div className="ml-2">
                         {slideItem.imageUrl ? (
-                          <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20" title="Has image">
+                          <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
                           </svg>
                         ) : (
-                          <svg className="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" title="No image">
+                          <svg className="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                           </svg>
                         )}

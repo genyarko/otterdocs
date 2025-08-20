@@ -363,20 +363,20 @@ export class OnlinePitchDeckGenerator implements PitchDeckGenerator {
 
   private createImagePrompt(slide: PitchDeckSlide, context: PitchDeckRequest): string {
     const imagePrompts: Record<SlideType, string> = {
-      [SlideType.TITLE]: `Professional business logo and company branding for ${context.companyName}, a ${context.industry} startup. Modern, clean design with corporate aesthetics. High-quality, professional appearance suitable for investor presentation.`,
-      [SlideType.PROBLEM]: `Visual representation of the business problem: ${slide.content.substring(0, 100)}. Professional infographic style showing pain points, challenges, and market gaps. Clean, modern design with business aesthetic.`,
-      [SlideType.SOLUTION]: `Innovative solution visualization for ${context.companyName}. Modern technology interface, product mockup, or solution diagram. Professional, clean design showing the innovative approach to solving the problem.`,
-      [SlideType.MARKET]: `Market opportunity visualization showing target market and growth potential. Professional charts, graphs, and market size representations. Business infographic style with clean, modern aesthetic.`,
-      [SlideType.BUSINESS_MODEL]: `Business model diagram showing revenue streams and value proposition. Professional flowchart or infographic style. Clean, modern design suitable for investor presentation.`,
-      [SlideType.TRACTION]: `Growth and traction visualization with charts, metrics, and success indicators. Professional business graphics showing upward trends and positive metrics. Clean, modern design.`,
-      [SlideType.COMPETITION]: `Competitive landscape visualization showing market positioning and advantages. Professional comparison charts or market positioning diagrams. Clean, business-appropriate design.`,
-      [SlideType.TEAM]: `Professional team photo or diverse business professionals representing a strong founding team. Clean, corporate photography style suitable for investor presentation.`,
-      [SlideType.FINANCIALS]: `Financial projections and revenue charts. Professional business charts, graphs, and financial infographics. Clean, modern design showing growth and profitability metrics.`,
-      [SlideType.FUNDING]: `Investment and funding visualization showing funding use and expected outcomes. Professional business graphics representing growth, expansion, and success. Clean, modern design.`
+      [SlideType.TITLE]: `Simple, minimal logo design for ${context.companyName}. Clean typography, single focal element, white background, minimal color palette.`,
+      [SlideType.PROBLEM]: `Minimal icon representing a business challenge. Single concept illustration, clean lines, simple geometric shapes, white background, one primary color.`,
+      [SlideType.SOLUTION]: `Clean, simple diagram showing a solution concept. Minimal geometric shapes, clear visual hierarchy, white background, modern flat design.`,
+      [SlideType.MARKET]: `Simple chart or graph visualization. Minimal data representation, clean lines, single color accent, white background, easy to read.`,
+      [SlideType.BUSINESS_MODEL]: `Minimalist flowchart with simple boxes and arrows. Clean geometric shapes, single accent color, white background, clear visual flow.`,
+      [SlideType.TRACTION]: `Simple upward trending chart or graph. Minimal design, clean lines, single color, white background, clear growth visualization.`,
+      [SlideType.COMPETITION]: `Clean comparison chart or positioning diagram. Simple geometric elements, minimal color palette, white background, clear differentiation.`,
+      [SlideType.TEAM]: `Simple silhouette figures or minimal avatar illustrations. Clean, professional icons, single color, white background, no complex details.`,
+      [SlideType.FINANCIALS]: `Clean financial chart with minimal elements. Simple bar or line chart, single accent color, white background, easy to read labels.`,
+      [SlideType.FUNDING]: `Minimal investment icon or simple growth arrow. Clean geometric design, single accent color, white background, clear concept visualization.`
     };
 
-    const basePrompt = imagePrompts[slide.slideType] || 'Professional business illustration relevant to the slide content.';
-    return `${basePrompt} Style: Professional, clean, modern, suitable for business presentation, high quality, corporate aesthetic.`;
+    const basePrompt = imagePrompts[slide.slideType] || 'Simple, minimal business illustration with clean design.';
+    return `${basePrompt} Style: Minimalist, flat design, professional, white background, single primary color, clean lines, no clutter, business appropriate.`;
   }
 
   private createSlidePrompt(

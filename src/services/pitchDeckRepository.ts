@@ -29,7 +29,10 @@ export class LocalPitchDeckRepository implements PitchDeckRepository {
 
   async savePitchDeck(pitchDeck: PitchDeck): Promise<void> {
     try {
-      console.log('Saving pitch deck:', pitchDeck.title, 'with', pitchDeck.slides.length, 'slides');
+      const isBusinessPlan = pitchDeck.id.startsWith('bp-');
+      const itemType = isBusinessPlan ? 'business plan' : 'pitch deck';
+      const itemCount = isBusinessPlan ? (pitchDeck as any).sections?.length : pitchDeck.slides?.length;
+      console.log(`Saving ${itemType}:`, pitchDeck.title, 'with', itemCount, isBusinessPlan ? 'sections' : 'slides');
       const pitchDecks = await this.getAllPitchDecks();
       const existingIndex = pitchDecks.findIndex(deck => deck.id === pitchDeck.id);
       
