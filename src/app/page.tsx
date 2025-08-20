@@ -10,9 +10,10 @@ import BusinessPlanCreator from '@/components/BusinessPlanCreator';
 import BusinessPlanList from '@/components/BusinessPlanList';
 import BusinessPlanViewer from '@/components/BusinessPlanViewer';
 import GenerationProgress from '@/components/GenerationProgress';
+import InvestorTrackerMain from '@/components/InvestorTrackerMain';
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<'pitch-decks' | 'business-plans'>('pitch-decks');
+  const [activeTab, setActiveTab] = useState<'pitch-decks' | 'business-plans' | 'investor-tracker'>('pitch-decks');
 
   // Pitch Deck hook
   const {
@@ -25,7 +26,7 @@ export default function Home() {
     isLoading,
     currentSlide,
     showPitchDeckList,
-    showCreator,
+    showCreator: showPitchDeckCreatorBool,
     
     // Actions
     generatePitchDeck,
@@ -80,20 +81,6 @@ export default function Home() {
     progressPercentage: businessPlanProgressPercentage
   } = useBusinessPlan();
 
-  // Debug logging (client-side only to avoid hydration issues)
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Home component render state:', {
-        activeTab,
-        hasCurrentPitchDeck: !!currentPitchDeck,
-        hasCurrentBusinessPlan: !!currentBusinessPlan,
-        showPitchDeckList,
-        showBusinessPlanList,
-        isGenerating,
-        isGeneratingBusinessPlan
-      });
-    }
-  });
 
   // Show generation progress modal
   if (isGenerating || isGeneratingBusinessPlan) {
@@ -205,8 +192,8 @@ export default function Home() {
 
 
 
-  // Show creation form logic for both types
-  const shouldShowPitchDeckCreator = showCreator || (showPitchDeckList && allPitchDecks.length === 0);
+  // Show creation form logic for both types - consistent behavior
+  const shouldShowPitchDeckCreator = showPitchDeckCreatorBool || (showPitchDeckList && allPitchDecks.length === 0);
   const shouldShowBusinessPlanCreator = showBusinessPlanCreator || (showBusinessPlanList && allBusinessPlans.length === 0);
   
 
@@ -242,6 +229,20 @@ export default function Home() {
             >
               Business Plans ({allBusinessPlans.length})
             </button>
+            <button
+              onClick={() => {
+                setActiveTab('investor-tracker');
+                if (currentPitchDeck) returnToList();
+                if (currentBusinessPlan) returnToBusinessPlanList();
+              }}
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'investor-tracker'
+                  ? 'border-purple-500 text-purple-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Investor Tracker
+            </button>
           </div>
         </div>
       </div>
@@ -268,7 +269,7 @@ export default function Home() {
             isLoading={isLoading}
           />
         )
-      ) : (
+      ) : activeTab === 'business-plans' ? (
         shouldShowBusinessPlanCreator ? (
           <div className="py-8">
             <BusinessPlanCreator
@@ -289,6 +290,8 @@ export default function Home() {
             isLoading={isLoadingBusinessPlans}
           />
         )
+      ) : (
+        <InvestorTrackerMain allPitchDecks={allPitchDecks} />
       )}
 
 

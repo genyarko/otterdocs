@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { PitchDeck, PitchDeckSlide } from '@/types/pitchDeck';
+import InvestorTracker from './InvestorTracker';
 
 interface PitchDeckViewerProps {
   pitchDeck: PitchDeck;
@@ -105,9 +106,9 @@ export default function PitchDeckViewer({
             <div className="flex items-center">
               <button
                 onClick={onBack}
-                className="text-gray-500 hover:text-gray-700 mr-4"
+                className="px-3 py-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md mr-4 transition-colors"
               >
-                ← Back
+                ← Back to Pitch Decks
               </button>
               <h1 className="text-lg font-semibold text-gray-900">
                 {pitchDeck.title}
@@ -448,6 +449,9 @@ export default function PitchDeckViewer({
                   </button>
                 </div>
               </div>
+            </div>
+            <div className="mt-8">
+              <InvestorTracker pitchedDeckId={pitchDeck.id} />
             </div>
           </div>
         </div>
